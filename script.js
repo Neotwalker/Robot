@@ -3,12 +3,14 @@
   const head = document.getElementById('robotHead');
   const layers = head ? [...head.querySelectorAll('.robot-head-frame')] : [];
 
-  if (!hero || !head || layers.length < 4) return;
+  if (!hero || !head || layers.length < 2) return;
 
   const YAW_STOPS = [-20, -10, 0, 10, 20];
   const PITCH_STOPS = [-8, 0, 8];
   const MAX_YAW = 20;
   const MAX_PITCH = 8;
+  const CROSSFADE_MS = 90;
+  const SWITCH_HYSTERESIS = 0.16;
   const SPRITE_CHUNKS = [
     'assets/sprite-v2/robot-head.00.b64',
     'assets/sprite-v2/robot-head.01.b64',
@@ -28,6 +30,18 @@
   const coarsePointer = window.matchMedia('(pointer: coarse)');
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const nearestStopIndex = (value, stops) => {
+    let bestIndex = 0;
+    let bestDistance = Infinity;
+    stops.forEach((stop, index) => {
+      const distance = Math.abs(value - stop);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestIndex = index;
+      }
+    });
+    return bestIndex;
+  };
 
   const state = {
     targetYaw: 0,
@@ -38,6 +52,80 @@
     lastInteraction: performance.now(),
     hasPointer: false,
     spriteUrl: '',
+    activeLayer: 0,
+    frame: null,
+  };
+
+  const spriteFrame = (yawIndex, pitchIndex) => ({
+    yawIndex,
+    pitchIndex,
+    yaw: YAW_STOPS[yawIndex],
+    pitch: PITCH_STOPS[pitchIndex],
+    col: yawIndex,
+    // Sprite rows are +8, 0, -8 while logical pitch is -8, 0, +8.
+    row: 2 - pitchIndex,
+    key: `${yawIndex}:${pitchIndex}`,
+  });
+
+  const frameDistance = (yaw, pitch, frame) => {
+    const dx = (yaw - frame.yaw) / 10;
+    const dy = (pitch - frame.pitch) / 8;
+    return Math.hypot(dx, dy);
+  };
+
+  const selectFrame = (yaw, pitch) => {
+    const candidate = spriteFrame(
+      nearestStopIndex(yaw, YAW_STOPS),
+      nearestStopIndex(pitch, PITCH_STOPS),
+    );
+
+    if (!state.frame || candidate.key === state.frame.key) return candidate;
+
+    const currentDistance = frameDistance(yaw, pitch, state.frame);
+    const candidateDistance = frameDistance(yaw, pitch, candidate);
+
+    // Keep the active frame slightly beyond the exact midpoint. This avoids
+    // rapid toggling around grid boundaries without leaving two heads visible.
+    return currentDistance - candidateDistance > SWITCH_HYSTERESIS
+      ? candidate
+      : state.frame;
+  };
+
+  const setFramePosition = (layer, frame) => {
+    layer.style.backgroundPosition = `${frame.col * 25}% ${frame.row * 50}%`;
+  };
+
+  const showFrame = (frame, immediate = false) => {
+    if (!frame || frame.key === state.frame?.key) return;
+
+    if (!state.frame || immediate) {
+      layers.forEach((layer, index) => {
+        layer.style.transition = 'none';
+        layer.style.opacity = index === 0 ? '1' : '0';
+      });
+      setFramePosition(layers[0], frame);
+      state.activeLayer = 0;
+      state.frame = frame;
+      requestAnimationFrame(() => {
+        layers.forEach((layer) => {
+          layer.style.transition = `opacity ${CROSSFADE_MS}ms linear`;
+        });
+      });
+      return;
+    }
+
+    const previousLayer = layers[state.activeLayer];
+    const nextLayerIndex = state.activeLayer === 0 ? 1 : 0;
+    const nextLayer = layers[nextLayerIndex];
+
+    setFramePosition(nextLayer, frame);
+    nextLayer.style.opacity = '0';
+    nextLayer.getBoundingClientRect();
+    previousLayer.style.opacity = '0';
+    nextLayer.style.opacity = '1';
+
+    state.activeLayer = nextLayerIndex;
+    state.frame = frame;
   };
 
   const loadSprite = async () => {
@@ -61,58 +149,17 @@
 
     layers.forEach((layer) => {
       layer.style.backgroundImage = `url("${state.spriteUrl}")`;
-    });
-    head.classList.add('is-ready');
-  };
-
-  const findInterval = (value, stops) => {
-    if (value <= stops[0]) return [0, 0, 0];
-    if (value >= stops[stops.length - 1]) {
-      const last = stops.length - 1;
-      return [last, last, 0];
-    }
-    for (let i = 0; i < stops.length - 1; i += 1) {
-      if (value >= stops[i] && value <= stops[i + 1]) {
-        return [i, i + 1, (value - stops[i]) / (stops[i + 1] - stops[i])];
-      }
-    }
-    return [2, 2, 0];
-  };
-
-  const frameWeights = (yaw, pitch) => {
-    const [x0, x1, tx] = findInterval(yaw, YAW_STOPS);
-    const [y0, y1, ty] = findInterval(pitch, PITCH_STOPS);
-    const candidates = [
-      [x0, y0, (1 - tx) * (1 - ty)],
-      [x1, y0, tx * (1 - ty)],
-      [x0, y1, (1 - tx) * ty],
-      [x1, y1, tx * ty],
-    ];
-    const merged = new Map();
-
-    for (const [col, pitchIndex, weight] of candidates) {
-      if (weight <= 0.0005) continue;
-      // Sprite rows: +8, 0, -8. Logical pitch stops: -8, 0, +8.
-      const row = 2 - pitchIndex;
-      const key = `${col}:${row}`;
-      merged.set(key, { col, row, weight: (merged.get(key)?.weight || 0) + weight });
-    }
-
-    return [...merged.values()].sort((a, b) => b.weight - a.weight).slice(0, 4);
-  };
-
-  const applyFrame = (layer, frame) => {
-    if (!frame) {
+      layer.style.transition = `opacity ${CROSSFADE_MS}ms linear`;
       layer.style.opacity = '0';
-      return;
-    }
-    layer.style.backgroundPosition = `${frame.col * 25}% ${frame.row * 50}%`;
-    layer.style.opacity = frame.weight.toFixed(4);
+    });
+
+    head.classList.add('is-ready');
+    showFrame(spriteFrame(2, 1), true);
   };
 
   const render = () => {
-    const frames = frameWeights(state.yaw, state.pitch);
-    layers.forEach((layer, index) => applyFrame(layer, frames[index]));
+    const frame = selectFrame(state.yaw, state.pitch);
+    showFrame(frame);
 
     const nx = state.yaw / MAX_YAW;
     const ny = state.pitch / MAX_PITCH;
