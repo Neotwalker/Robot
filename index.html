@@ -3,67 +3,64 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#080b0f" />
-  <meta name="description" content="Интерактивный hero-блок Abzalov Lab: объёмный робот следит за курсором." />
-  <title>Abzalov Lab — интерактивный robot hero</title>
+  <meta name="theme-color" content="#06090d" />
+  <meta name="description" content="Интерактивный hero-блок Abzalov Lab: робот из нового видео следит за курсором." />
+  <title>Abzalov Lab — Robot Cursor Hero</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="hero" id="hero" aria-labelledby="hero-title">
-    <div class="hero__noise" aria-hidden="true"></div>
-    <div class="hero__glow hero__glow--left" aria-hidden="true"></div>
-    <div class="hero__glow hero__glow--robot" aria-hidden="true"></div>
+    <div class="hero__grid" aria-hidden="true"></div>
+    <div class="hero__glow hero__glow--one" aria-hidden="true"></div>
+    <div class="hero__glow hero__glow--two" aria-hidden="true"></div>
 
     <header class="topbar">
       <a class="brand" href="#hero" aria-label="Abzalov Lab — наверх">
         <span class="brand__mark" aria-hidden="true">A</span>
-        <span class="brand__text">ABZALOV LAB</span>
+        <span>ABZALOV LAB</span>
       </a>
-      <nav class="topbar__nav" aria-label="Навигация">
-        <a href="#work">Работы</a>
-        <a href="#contact">Контакты</a>
-      </nav>
+      <span class="topbar__status"><i aria-hidden="true"></i> Interactive hero</span>
     </header>
 
     <section class="hero__content">
       <div class="hero__copy">
-        <p class="eyebrow"><span></span> DESIGN · DEVELOPMENT · SEO</p>
+        <p class="eyebrow"><span aria-hidden="true"></span> DESIGN · DEVELOPMENT · SEO</p>
         <h1 id="hero-title">Сайты, которые<br />приводят клиентов.</h1>
         <p class="hero__lead">
-          Проектирую, разрабатываю и продвигаю сайты. Без лишнего шума — с логикой, деталями и фокусом на результате.
+          Проектирую, разрабатываю и продвигаю сайты. Фокус — на логике, деталях и результате.
         </p>
-        <div class="hero__actions" id="contact">
-          <a class="button button--primary" href="mailto:hello@abzalovlab.ru">
-            Обсудить проект
-            <span aria-hidden="true">↗</span>
-          </a>
-          <a class="button button--ghost" href="#work">Смотреть работы</a>
+        <div class="hero__actions">
+          <a class="button button--primary" href="mailto:hello@abzalovlab.ru">Обсудить проект <span aria-hidden="true">↗</span></a>
+          <a class="button button--ghost" href="#robot">Смотреть механику</a>
         </div>
         <div class="cursor-hint" aria-hidden="true">
-          <span class="cursor-hint__icon"></span>
-          <span>Двигайте курсором</span>
+          <span class="cursor-hint__mouse"><i></i></span>
+          <span>Веди курсором — робот смотрит вслед</span>
         </div>
       </div>
 
-      <div class="hero__visual" id="work" aria-label="Интерактивный робот, который объёмно следит за курсором">
-        <div class="robot-stage" id="robotStage">
-          <img class="robot robot--body" src="assets/robot-body.webp" width="1672" height="941" alt="Футуристический робот в тёмной студии" draggable="false" />
-          <div class="neck-shadow" id="neckShadow" aria-hidden="true"></div>
-          <div class="robot-head-stack" id="robotHead" aria-hidden="true">
-            <span class="robot-head-frame" data-layer="0"></span>
-            <span class="robot-head-frame" data-layer="1"></span>
+      <div class="hero__visual" id="robot">
+        <div class="robot-shell" id="robotShell" aria-label="Робот из исходного видео, который следует взглядом за курсором">
+          <div class="robot-shell__shine" aria-hidden="true"></div>
+          <div class="robot-frames" id="robotFrames" aria-hidden="true">
+            <span class="robot-frame" data-layer="0"></span>
+            <span class="robot-frame" data-layer="1"></span>
           </div>
-          <div class="robot-aura" aria-hidden="true"></div>
+          <div class="robot-loader" id="robotLoader" aria-hidden="true"><span></span></div>
+          <div class="robot-shell__hud" aria-hidden="true">
+            <span>NEW VIDEO SOURCE / CURSOR TRACKING</span>
+            <span>9 VIDEO FRAMES</span>
+          </div>
         </div>
       </div>
     </section>
 
-    <div class="hero__footer" aria-hidden="true">
-      <span>CHELYABINSK / WORLDWIDE</span>
-      <span class="hero__footer-line"></span>
-      <span>2026</span>
-    </div>
+    <footer class="hero__footer" aria-hidden="true">
+      <span>ABZALOV LAB / 2026</span>
+      <span></span>
+      <span>MOVE THE CURSOR</span>
+    </footer>
   </main>
 
   <script src="script.js"></script>
