@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#080b0f" />
-  <meta name="description" content="Интерактивный hero-блок Abzalov Lab: робот следит за курсором мыши." />
-  <title>Abzalov Lab — интерактивный hero</title>
+  <meta name="description" content="Интерактивный hero-блок Abzalov Lab: объёмный робот следит за курсором." />
+  <title>Abzalov Lab — интерактивный robot hero</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -46,25 +46,15 @@
         </div>
       </div>
 
-      <div class="hero__visual" id="work" aria-label="Интерактивный робот, который следит за курсором">
+      <div class="hero__visual" id="work" aria-label="Интерактивный робот, который объёмно следит за курсором">
         <div class="robot-stage" id="robotStage">
-          <img
-            class="robot robot--body"
-            src="assets/robot-body.webp"
-            width="1672"
-            height="941"
-            alt="Футуристический робот в тёмной студии"
-            draggable="false"
-          />
-          <div class="robot-head" id="robotHead" aria-hidden="true">
-            <img
-              class="robot robot--head"
-              src="assets/robot-head.webp"
-              width="1672"
-              height="941"
-              alt=""
-              draggable="false"
-            />
+          <img class="robot robot--body" src="assets/robot-body.webp" width="1672" height="941" alt="Футуристический робот в тёмной студии" draggable="false" />
+          <div class="neck-shadow" id="neckShadow" aria-hidden="true"></div>
+          <div class="robot-head-stack" id="robotHead" aria-hidden="true">
+            <span class="robot-head-frame" data-layer="0"></span>
+            <span class="robot-head-frame" data-layer="1"></span>
+            <span class="robot-head-frame" data-layer="2"></span>
+            <span class="robot-head-frame" data-layer="3"></span>
           </div>
           <div class="robot-aura" aria-hidden="true"></div>
         </div>
