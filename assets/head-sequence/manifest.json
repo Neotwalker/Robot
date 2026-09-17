@@ -1,0 +1,18 @@
+{
+  "version": "video-sequence-v2",
+  "source": "2026-09-18 00:35:07.mp4",
+  "source_frames": [138, 151],
+  "source_time_seconds": [4.5667, 5.0333],
+  "interpolation": "ffmpeg minterpolate 60fps mci/aobmc/bidir/vsbmc",
+  "frame_count": 25,
+  "frame_size": [360, 294],
+  "atlas_grid": [6, 5],
+  "atlas_size": [2160, 1470],
+  "crop_source_px": [235, 20, 725, 420],
+  "production_status": "motion-prototype",
+  "notes": [
+    "Chosen clean end segment to avoid laser crossing visor",
+    "Subtle motion intentionally prioritized over large cursor-follow range",
+    "Background retained for masked prototype; final alpha not yet approved"
+  ]
+}
