@@ -1,137 +1,79 @@
 (() => {
   const hero = document.getElementById('hero');
-  const head = document.getElementById('robotHead');
-  const layers = head ? [...head.querySelectorAll('.robot-head-frame')] : [];
+  const shell = document.getElementById('robotShell');
+  const frameStack = document.getElementById('robotFrames');
+  const loader = document.getElementById('robotLoader');
+  const layers = frameStack ? [...frameStack.querySelectorAll('.robot-frame')] : [];
 
-  if (!hero || !head || layers.length < 2) return;
+  if (!hero || !shell || !frameStack || layers.length < 2) return;
 
-  const YAW_STOPS = [-20, -10, 0, 10, 20];
-  const PITCH_STOPS = [-8, 0, 8];
-  const MAX_YAW = 20;
-  const MAX_PITCH = 8;
-  const CROSSFADE_MS = 90;
-  const SWITCH_HYSTERESIS = 0.16;
-  const SPRITE_CHUNKS = [
-    'assets/sprite-v2/robot-head.00.b64',
-    'assets/sprite-v2/robot-head.01.b64',
-    'assets/sprite-v2/robot-head.02.b64',
-    'assets/sprite-v2/robot-head.03.b64',
-    'assets/sprite-v2/robot-head.04.b64',
-    'assets/sprite-v2/robot-head.05.b64',
-    'assets/sprite-v2/robot-head.06.b64',
-    'assets/sprite-v2/robot-head.07.b64',
-    'assets/sprite-v2/robot-head.08.b64',
-    'assets/sprite-v2/robot-head.09.b64',
-    'assets/sprite-v2/robot-head.10.b64',
-    'assets/sprite-v2/robot-head.11.b64',
-    'assets/sprite-v2/robot-head.12.b64',
-  ];
+  const COLS = 3;
+  const ROWS = 3;
+  const CROSSFADE_MS = 105;
+  const CHUNKS = Array.from(
+    { length: 6 },
+    (_, index) => `assets/video-frames/robot-frames.${String(index).padStart(2, '0')}.b64`,
+  );
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const coarsePointer = window.matchMedia('(pointer: coarse)');
-
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-  const nearestStopIndex = (value, stops) => {
-    let bestIndex = 0;
-    let bestDistance = Infinity;
-    stops.forEach((stop, index) => {
-      const distance = Math.abs(value - stop);
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        bestIndex = index;
-      }
-    });
-    return bestIndex;
-  };
 
   const state = {
-    targetYaw: 0,
-    targetPitch: 0,
-    yaw: 0,
-    pitch: 0,
-    lastTime: performance.now(),
-    lastInteraction: performance.now(),
-    hasPointer: false,
-    spriteUrl: '',
+    targetX: 0,
+    targetY: 0,
+    x: 0,
+    y: 0,
+    frameKey: '',
     activeLayer: 0,
-    frame: null,
+    hasPointer: false,
+    lastInteraction: performance.now(),
+    lastTime: performance.now(),
+    spriteUrl: '',
   };
 
-  const spriteFrame = (yawIndex, pitchIndex) => ({
-    yawIndex,
-    pitchIndex,
-    yaw: YAW_STOPS[yawIndex],
-    pitch: PITCH_STOPS[pitchIndex],
-    col: yawIndex,
-    // Sprite rows are +8, 0, -8 while logical pitch is -8, 0, +8.
-    row: 2 - pitchIndex,
-    key: `${yawIndex}:${pitchIndex}`,
-  });
-
-  const frameDistance = (yaw, pitch, frame) => {
-    const dx = (yaw - frame.yaw) / 10;
-    const dy = (pitch - frame.pitch) / 8;
-    return Math.hypot(dx, dy);
+  const frameFor = (x, y) => {
+    const col = clamp(Math.round(((x + 1) / 2) * (COLS - 1)), 0, COLS - 1);
+    const row = clamp(Math.round(((y + 1) / 2) * (ROWS - 1)), 0, ROWS - 1);
+    return { col, row, key: `${col}:${row}` };
   };
 
-  const selectFrame = (yaw, pitch) => {
-    const candidate = spriteFrame(
-      nearestStopIndex(yaw, YAW_STOPS),
-      nearestStopIndex(pitch, PITCH_STOPS),
-    );
-
-    if (!state.frame || candidate.key === state.frame.key) return candidate;
-
-    const currentDistance = frameDistance(yaw, pitch, state.frame);
-    const candidateDistance = frameDistance(yaw, pitch, candidate);
-
-    // Keep the active frame slightly beyond the exact midpoint. This avoids
-    // rapid toggling around grid boundaries without leaving two heads visible.
-    return currentDistance - candidateDistance > SWITCH_HYSTERESIS
-      ? candidate
-      : state.frame;
-  };
-
-  const setFramePosition = (layer, frame) => {
-    layer.style.backgroundPosition = `${frame.col * 25}% ${frame.row * 50}%`;
+  const positionLayer = (layer, frame) => {
+    layer.style.backgroundPosition = `${frame.col * 50}% ${frame.row * 50}%`;
   };
 
   const showFrame = (frame, immediate = false) => {
-    if (!frame || frame.key === state.frame?.key) return;
+    if (!frame || frame.key === state.frameKey) return;
 
-    if (!state.frame || immediate) {
-      layers.forEach((layer, index) => {
-        layer.style.transition = 'none';
-        layer.style.opacity = index === 0 ? '1' : '0';
-      });
-      setFramePosition(layers[0], frame);
+    if (!state.frameKey || immediate) {
+      positionLayer(layers[0], frame);
+      layers[0].style.opacity = '1';
+      layers[1].style.opacity = '0';
       state.activeLayer = 0;
-      state.frame = frame;
-      requestAnimationFrame(() => {
-        layers.forEach((layer) => {
-          layer.style.transition = `opacity ${CROSSFADE_MS}ms linear`;
-        });
-      });
+      state.frameKey = frame.key;
       return;
     }
 
-    const previousLayer = layers[state.activeLayer];
-    const nextLayerIndex = state.activeLayer === 0 ? 1 : 0;
-    const nextLayer = layers[nextLayerIndex];
+    const previous = layers[state.activeLayer];
+    const nextIndex = state.activeLayer === 0 ? 1 : 0;
+    const next = layers[nextIndex];
 
-    setFramePosition(nextLayer, frame);
-    nextLayer.style.opacity = '0';
-    nextLayer.getBoundingClientRect();
-    previousLayer.style.opacity = '0';
-    nextLayer.style.opacity = '1';
+    positionLayer(next, frame);
+    next.style.transition = 'none';
+    next.style.opacity = '0';
+    next.getBoundingClientRect();
+    next.style.transition = `opacity ${CROSSFADE_MS}ms linear`;
+    previous.style.transition = `opacity ${CROSSFADE_MS}ms linear`;
+    previous.style.opacity = '0';
+    next.style.opacity = '1';
 
-    state.activeLayer = nextLayerIndex;
-    state.frame = frame;
+    state.activeLayer = nextIndex;
+    state.frameKey = frame.key;
   };
 
   const loadSprite = async () => {
-    const parts = await Promise.all(SPRITE_CHUNKS.map(async (url) => {
+    const parts = await Promise.all(CHUNKS.map(async (url) => {
       const response = await fetch(url, { cache: 'force-cache' });
-      if (!response.ok) throw new Error(`Sprite chunk ${response.status}: ${url}`);
+      if (!response.ok) throw new Error(`Frame atlas chunk failed: ${response.status} ${url}`);
       return response.text();
     }));
 
@@ -141,7 +83,6 @@
     for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
 
     state.spriteUrl = URL.createObjectURL(new Blob([bytes], { type: 'image/webp' }));
-
     const image = new Image();
     image.decoding = 'async';
     image.src = state.spriteUrl;
@@ -150,48 +91,44 @@
     layers.forEach((layer) => {
       layer.style.backgroundImage = `url("${state.spriteUrl}")`;
       layer.style.transition = `opacity ${CROSSFADE_MS}ms linear`;
-      layer.style.opacity = '0';
     });
 
-    head.classList.add('is-ready');
-    showFrame(spriteFrame(2, 1), true);
+    frameStack.classList.add('is-ready');
+    loader?.classList.add('is-hidden');
+    showFrame(frameFor(0, 0), true);
+  };
+
+  const setTarget = (clientX, clientY) => {
+    const rect = shell.getBoundingClientRect();
+    const centerX = rect.left + rect.width * .50;
+    const centerY = rect.top + rect.height * .48;
+    const rangeX = Math.max(window.innerWidth * .46, rect.width * .72);
+    const rangeY = Math.max(window.innerHeight * .46, rect.height * .92);
+
+    state.targetX = clamp((clientX - centerX) / rangeX, -1, 1);
+    state.targetY = clamp((clientY - centerY) / rangeY, -1, 1);
+    state.hasPointer = true;
+    state.lastInteraction = performance.now();
   };
 
   const render = () => {
-    const frame = selectFrame(state.yaw, state.pitch);
-    showFrame(frame);
-
-    const nx = state.yaw / MAX_YAW;
-    const ny = state.pitch / MAX_PITCH;
-    hero.style.setProperty('--head-x', `${(nx * 5.5).toFixed(2)}px`);
-    hero.style.setProperty('--head-y', `${(-ny * 3.5).toFixed(2)}px`);
-    hero.style.setProperty('--glow-x', `${(nx * 16).toFixed(2)}px`);
-    hero.style.setProperty('--glow-y', `${(-ny * 10).toFixed(2)}px`);
-    hero.style.setProperty('--neck-shadow-x', `${(nx * -7).toFixed(2)}px`);
-    hero.style.setProperty('--neck-shadow-y', `${(ny * 4).toFixed(2)}px`);
-    hero.style.setProperty('--neck-shadow-opacity', `${(0.30 + Math.abs(nx) * 0.08 + Math.max(0, -ny) * 0.08).toFixed(3)}`);
-  };
-
-  const setTargetFromPoint = (clientX, clientY) => {
-    const rect = hero.getBoundingClientRect();
-    const nx = clamp(((clientX - rect.left) / rect.width) * 2 - 1, -1, 1);
-    const ny = clamp(((clientY - rect.top) / rect.height) * 2 - 1, -1, 1);
-    state.targetYaw = nx * MAX_YAW;
-    state.targetPitch = -ny * MAX_PITCH;
-    state.lastInteraction = performance.now();
-    state.hasPointer = true;
+    showFrame(frameFor(state.x, state.y));
+    hero.style.setProperty('--frame-x', `${(state.x * 5.5).toFixed(2)}px`);
+    hero.style.setProperty('--frame-y', `${(state.y * 3.2).toFixed(2)}px`);
+    hero.style.setProperty('--tilt-x', `${(-state.y * 1.05).toFixed(2)}deg`);
+    hero.style.setProperty('--tilt-y', `${(state.x * 1.35).toFixed(2)}deg`);
   };
 
   hero.addEventListener('pointermove', (event) => {
     if (event.pointerType === 'mouse' || event.pointerType === 'pen') {
-      setTargetFromPoint(event.clientX, event.clientY);
+      setTarget(event.clientX, event.clientY);
     }
   }, { passive: true });
 
   hero.addEventListener('pointerdown', (event) => {
-    setTargetFromPoint(event.clientX, event.clientY);
+    setTarget(event.clientX, event.clientY);
     if (event.pointerType === 'touch') {
-      window.setTimeout(() => { state.hasPointer = false; }, 850);
+      window.setTimeout(() => { state.hasPointer = false; }, 900);
     }
   }, { passive: true });
 
@@ -208,13 +145,14 @@
     try {
       await loadSprite();
     } catch (error) {
-      console.error('Robot sprite failed to load', error);
+      console.error('New video frame atlas failed to load', error);
+      loader?.classList.add('is-error');
       return;
     }
 
     if (reduceMotion.matches) {
-      state.yaw = 0;
-      state.pitch = 0;
+      state.x = 0;
+      state.y = 0;
       render();
       return;
     }
@@ -222,23 +160,21 @@
     const tick = (time) => {
       const dt = clamp((time - state.lastTime) / 1000, 0, .05);
       state.lastTime = time;
-      const idleFor = time - state.lastInteraction;
 
-      if (!state.hasPointer && idleFor > 1000) {
-        const ampYaw = coarsePointer.matches ? 4.5 : 3.2;
-        const ampPitch = coarsePointer.matches ? 1.8 : 1.2;
-        state.targetYaw = Math.sin(time * 0.00034) * ampYaw;
-        state.targetPitch = Math.sin(time * 0.00027 + 1.05) * ampPitch;
+      if (!state.hasPointer && time - state.lastInteraction > 1200) {
+        const ampX = coarsePointer.matches ? .34 : .12;
+        const ampY = coarsePointer.matches ? .28 : .08;
+        state.targetX = Math.sin(time * .00036) * ampX;
+        state.targetY = Math.sin(time * .00029 + .8) * ampY;
       }
 
-      const damping = 1 - Math.exp(-dt * 7.8);
-      state.yaw += (state.targetYaw - state.yaw) * damping;
-      state.pitch += (state.targetPitch - state.pitch) * damping;
+      const damping = 1 - Math.exp(-dt * 10.5);
+      state.x += (state.targetX - state.x) * damping;
+      state.y += (state.targetY - state.y) * damping;
       render();
       requestAnimationFrame(tick);
     };
 
-    render();
     requestAnimationFrame(tick);
   };
 
