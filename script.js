@@ -23,7 +23,6 @@
     const nx = clamp(((clientX - rect.left) / rect.width) * 2 - 1, -1, 1);
     const ny = clamp(((clientY - rect.top) / rect.height) * 2 - 1, -1, 1);
 
-    // Cursor is mostly to the left of the robot, so horizontal tracking is stronger.
     state.targetX = nx;
     state.targetY = ny;
     state.lastInteraction = performance.now();
@@ -48,28 +47,26 @@
   const tick = (time) => {
     const idleFor = time - state.lastInteraction;
 
-    // On touch devices and when the mouse leaves, the robot keeps a barely visible idle scan.
-    if (!state.hasPointer && idleFor > 800) {
-      state.targetX = Math.sin(time * 0.00042) * 0.20;
-      state.targetY = Math.sin(time * 0.00031 + 1.2) * 0.12;
+    if (!state.hasPointer && idleFor > 1000) {
+      state.targetX = Math.sin(time * 0.00038) * 0.12;
+      state.targetY = Math.sin(time * 0.00029 + 1.1) * 0.08;
     }
 
-    const ease = 0.075;
+    const ease = 0.065;
     state.x += (state.targetX - state.x) * ease;
     state.y += (state.targetY - state.y) * ease;
 
-    // Negative Y rotation makes the face turn toward a cursor on the left side.
-    const rotY = state.x * -11;
-    const rotX = state.y * 7;
-    const tx = state.x * -7;
-    const ty = state.y * 5;
-    const glowX = state.x * -13;
-    const glowY = state.y * 9;
+    // The head is a flat rendered layer, so only subtle 2D motion is used.
+    // This keeps the image intact while still giving a clear tracking effect.
+    const headX = state.x * 11;
+    const headY = state.y * 7;
+    const headR = state.x * 1.05 + state.y * 0.18;
+    const glowX = state.x * 14;
+    const glowY = state.y * 10;
 
-    hero.style.setProperty('--head-ry', `${rotY.toFixed(3)}deg`);
-    hero.style.setProperty('--head-rx', `${rotX.toFixed(3)}deg`);
-    hero.style.setProperty('--head-tx', `${tx.toFixed(2)}px`);
-    hero.style.setProperty('--head-ty', `${ty.toFixed(2)}px`);
+    hero.style.setProperty('--head-x', `${headX.toFixed(2)}px`);
+    hero.style.setProperty('--head-y', `${headY.toFixed(2)}px`);
+    hero.style.setProperty('--head-r', `${headR.toFixed(3)}deg`);
     hero.style.setProperty('--glow-x', `${glowX.toFixed(2)}px`);
     hero.style.setProperty('--glow-y', `${glowY.toFixed(2)}px`);
 
