@@ -7,16 +7,14 @@
   --line: rgba(255, 255, 255, 0.11);
   --blue: #48b9ff;
   --blue-bright: #7fd0ff;
-  --head-rx: 0deg;
-  --head-ry: 0deg;
-  --head-tx: 0px;
-  --head-ty: 0px;
+  --head-x: 0px;
+  --head-y: 0px;
+  --head-r: 0deg;
   --glow-x: 0px;
   --glow-y: 0px;
 }
 
 * { box-sizing: border-box; }
-
 html { scroll-behavior: smooth; }
 
 body {
@@ -55,20 +53,20 @@ a { color: inherit; }
 .hero__noise {
   position: absolute;
   inset: 0;
+  z-index: 6;
   opacity: .045;
   pointer-events: none;
-  z-index: 6;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
   mix-blend-mode: soft-light;
 }
 
 .hero__glow {
   position: absolute;
+  z-index: 0;
   border-radius: 999px;
   filter: blur(80px);
   pointer-events: none;
   opacity: .22;
-  z-index: 0;
 }
 
 .hero__glow--left {
@@ -87,7 +85,7 @@ a { color: inherit; }
   right: 8vw;
   top: 19%;
   background: rgba(70, 183, 255, .15);
-  transform: translate(var(--glow-x), var(--glow-y));
+  transform: translate3d(var(--glow-x), var(--glow-y), 0);
 }
 
 .topbar {
@@ -123,10 +121,7 @@ a { color: inherit; }
   box-shadow: inset 0 0 20px rgba(72,185,255,.08);
 }
 
-.topbar__nav {
-  display: flex;
-  gap: 30px;
-}
+.topbar__nav { display: flex; gap: 30px; }
 
 .topbar__nav a {
   position: relative;
@@ -223,7 +218,7 @@ h1 {
   text-decoration: none;
   font-size: 15px;
   font-weight: 650;
-  transition: transform .2s ease, border-color .2s ease, background .2s ease;
+  transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
 }
 
 .button:hover { transform: translateY(-2px); }
@@ -287,7 +282,7 @@ h1 {
 .hero__visual {
   position: absolute;
   z-index: 2;
-  right: max(-8vw, -120px);
+  right: max(-6vw, -90px);
   top: 50%;
   width: min(76vw, 1260px);
   translate: 0 -50%;
@@ -298,8 +293,6 @@ h1 {
   position: relative;
   aspect-ratio: 1672 / 941;
   width: 100%;
-  perspective: 1400px;
-  transform-style: preserve-3d;
 }
 
 .robot {
@@ -323,17 +316,12 @@ h1 {
   inset: 0;
   z-index: 3;
   transform-origin: 74.6% 42.2%;
-  transform-style: preserve-3d;
-  translate: var(--head-tx) var(--head-ty);
-  rotate: 0deg;
-  transform: rotateX(var(--head-rx)) rotateY(var(--head-ry));
-  will-change: transform, translate;
+  transform: translate3d(var(--head-x), var(--head-y), 0) rotate(var(--head-r));
+  will-change: transform;
 }
 
 .robot--head {
-  filter:
-    saturate(1.04)
-    drop-shadow(0 0 8px rgba(66, 183, 255, .05));
+  filter: saturate(1.04) drop-shadow(0 0 8px rgba(66, 183, 255, .05));
 }
 
 .robot-aura {
@@ -346,8 +334,7 @@ h1 {
   border-radius: 50%;
   background: radial-gradient(circle, rgba(71,185,255,.12), rgba(71,185,255,0) 68%);
   filter: blur(18px);
-  translate: var(--glow-x) var(--glow-y);
-  transition: opacity .2s ease;
+  transform: translate3d(var(--glow-x), var(--glow-y), 0);
 }
 
 .hero__footer {
@@ -379,12 +366,12 @@ h1 {
 
   .hero__copy {
     width: 62%;
-    padding-top: 110px;
+    padding-top: 100px;
   }
 
   .hero__visual {
-    width: 1000px;
-    right: -340px;
+    width: 980px;
+    right: -300px;
   }
 
   h1 { font-size: clamp(52px, 7vw, 78px); }
@@ -397,7 +384,7 @@ h1 {
     width: min(100% - 36px, 640px);
   }
 
-  .topbar { padding: 20px 0; }
+  .topbar { padding: 16px 0; }
   .topbar__nav { gap: 16px; }
   .topbar__nav a { font-size: 13px; }
   .brand__text { display: none; }
@@ -411,41 +398,59 @@ h1 {
 
   .hero__content {
     display: block;
-    min-height: calc(100svh - 70px);
+    min-height: calc(100svh - 63px);
   }
 
   .hero__copy {
     width: 100%;
-    padding: 72px 0 42vh;
+    padding: 42px 0 300px;
   }
 
-  .eyebrow { margin-bottom: 20px; font-size: 10px; }
-  h1 { font-size: clamp(46px, 13vw, 68px); }
-  .hero__lead { max-width: 520px; margin-top: 24px; font-size: 16px; }
-  .hero__actions { margin-top: 28px; }
-  .button { min-height: 50px; }
+  .eyebrow { margin-bottom: 18px; font-size: 10px; }
+  h1 { font-size: clamp(43px, 12.2vw, 64px); }
+  .hero__lead { max-width: 520px; margin-top: 20px; font-size: 15px; line-height: 1.55; }
+  .hero__actions { margin-top: 22px; }
+  .button { min-height: 48px; padding-inline: 18px; font-size: 14px; }
   .cursor-hint { display: none; }
 
   .hero__visual {
     top: auto;
-    bottom: -2vh;
-    right: -235px;
-    width: 860px;
+    bottom: 4px;
+    right: -20px;
+    width: 610px;
     translate: 0 0;
-    opacity: .92;
+    opacity: .94;
   }
 
-  .hero__footer { bottom: 16px; }
+  .hero__glow--robot {
+    width: 220px;
+    height: 220px;
+    right: -10px;
+    top: auto;
+    bottom: 90px;
+  }
+
+  .hero__footer { bottom: 12px; }
 }
 
 @media (max-width: 460px) {
   .topbar__nav a:first-child { display: none; }
-  .hero__copy { padding-top: 52px; padding-bottom: 46vh; }
-  h1 { font-size: 13.2vw; }
-  .hero__lead { line-height: 1.55; }
-  .button { width: 100%; }
-  .hero__visual { width: 780px; right: -245px; bottom: 0; }
+  .hero__copy { padding-top: 34px; padding-bottom: 292px; }
+  h1 { font-size: 12.6vw; }
+  .hero__lead { margin-top: 18px; font-size: 14px; }
+  .hero__actions { flex-wrap: nowrap; gap: 8px; margin-top: 20px; }
+  .button { min-height: 46px; padding-inline: 14px; gap: 10px; font-size: 13px; white-space: nowrap; }
+  .hero__visual { width: 570px; right: -12px; bottom: 8px; }
   .hero__footer span:first-child { display: none; }
+}
+
+@media (max-height: 720px) and (max-width: 760px) {
+  .hero__copy { padding-top: 24px; padding-bottom: 230px; }
+  .eyebrow { margin-bottom: 12px; }
+  .hero__lead { margin-top: 14px; }
+  .hero__actions { margin-top: 16px; }
+  .hero__visual { width: 500px; bottom: -12px; }
+  .hero__footer { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -455,5 +460,7 @@ h1 {
     animation-iteration-count: 1 !important;
   }
 
-  .robot-head { transform: none !important; translate: 0 0 !important; }
+  .robot-head { transform: none !important; }
+  .hero__glow--robot,
+  .robot-aura { transform: none !important; }
 }
