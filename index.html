@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#080b0f" />
+  <meta name="description" content="Интерактивный hero-блок Abzalov Lab: робот следит за курсором мыши." />
+  <title>Abzalov Lab — интерактивный hero</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="hero" id="hero" aria-labelledby="hero-title">
+    <div class="hero__noise" aria-hidden="true"></div>
+    <div class="hero__glow hero__glow--left" aria-hidden="true"></div>
+    <div class="hero__glow hero__glow--robot" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="brand" href="#hero" aria-label="Abzalov Lab — наверх">
+        <span class="brand__mark" aria-hidden="true">A</span>
+        <span class="brand__text">ABZALOV LAB</span>
+      </a>
+      <nav class="topbar__nav" aria-label="Навигация">
+        <a href="#work">Работы</a>
+        <a href="#contact">Контакты</a>
+      </nav>
+    </header>
+
+    <section class="hero__content">
+      <div class="hero__copy">
+        <p class="eyebrow"><span></span> DESIGN · DEVELOPMENT · SEO</p>
+        <h1 id="hero-title">Сайты, которые<br />приводят клиентов.</h1>
+        <p class="hero__lead">
+          Проектирую, разрабатываю и продвигаю сайты. Без лишнего шума — с логикой, деталями и фокусом на результате.
+        </p>
+        <div class="hero__actions" id="contact">
+          <a class="button button--primary" href="mailto:hello@abzalovlab.ru">
+            Обсудить проект
+            <span aria-hidden="true">↗</span>
+          </a>
+          <a class="button button--ghost" href="#work">Смотреть работы</a>
+        </div>
+        <div class="cursor-hint" aria-hidden="true">
+          <span class="cursor-hint__icon"></span>
+          <span>Двигайте курсором</span>
+        </div>
+      </div>
+
+      <div class="hero__visual" id="work" aria-label="Интерактивный робот, который следит за курсором">
+        <div class="robot-stage" id="robotStage">
+          <img
+            class="robot robot--body"
+            src="assets/robot-body.webp"
+            width="1672"
+            height="941"
+            alt="Футуристический робот в тёмной студии"
+            draggable="false"
+          />
+          <div class="robot-head" id="robotHead" aria-hidden="true">
+            <img
+              class="robot robot--head"
+              src="assets/robot-head.webp"
+              width="1672"
+              height="941"
+              alt=""
+              draggable="false"
+            />
+          </div>
+          <div class="robot-aura" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="hero__footer" aria-hidden="true">
+      <span>CHELYABINSK / WORLDWIDE</span>
+      <span class="hero__footer-line"></span>
+      <span>2026</span>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
